@@ -10,7 +10,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --text-hero: clamp(3rem, 8vw, 8rem);
+  --text-hero: clamp(2.5rem, 8vw, 8rem);
   --text-subhead: clamp(1rem, 2vw, 1.5rem);
 }
 

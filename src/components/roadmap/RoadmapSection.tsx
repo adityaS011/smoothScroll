@@ -64,7 +64,7 @@ export function RoadmapSection({ section, priority = false }: RoadmapSectionProp
   }, [reducedMotion, lastWordId]);
 
   return (
-    <section ref={sectionRef} className="relative h-[100dvh] w-full overflow-hidden">
+    <section ref={sectionRef} className="relative h-dvh w-full overflow-hidden">
       {section.background.kind === "image" ? (
         <Image
           src={section.background.src}
