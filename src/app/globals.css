@@ -10,6 +10,8 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-size-hero: clamp(3rem, 8vw, 8rem);
+  --font-size-subhead: clamp(1rem, 2vw, 1.5rem);
 }
 
 @media (prefers-color-scheme: dark) {
