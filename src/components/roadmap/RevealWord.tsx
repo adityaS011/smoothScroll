@@ -19,7 +19,7 @@ export const RevealWord = forwardRef<HTMLSpanElement, RevealWordProps>(
       <span
         ref={ref}
         style={{ gridArea: word.zone }}
-        className={`${zoneClasses(word.zone)} ${sizeClass} ${colorClass} whitespace-pre-line px-2 py-1 tracking-tight`}
+        className={`${zoneClasses(word.zone)} ${sizeClass} ${colorClass} whitespace-pre-line px-2 py-1 tracking-tight transition-[opacity,transform] duration-150 ease-out`}
       >
         {word.text}
       </span>
