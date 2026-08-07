@@ -1,11 +1,19 @@
+export type WordZone =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "center-left"
+  | "center"
+  | "center-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
+
 export type RoadmapWord = {
   id: string;
   text: string;
-};
-
-export type ConnectorAnchor = {
-  wordId: string;
-  edge: "start" | "end" | "center";
+  zone: WordZone;
+  emphasis?: "large" | "normal";
 };
 
 export type RoadmapBackground =
@@ -19,6 +27,6 @@ export type RoadmapSectionConfig = {
   theme: RoadmapTheme;
   background: RoadmapBackground;
   words: RoadmapWord[];
-  connector: { from: ConnectorAnchor; to: ConnectorAnchor } | null;
+  showConnector: boolean;
   showOverlay: boolean;
 };
