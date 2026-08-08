@@ -88,7 +88,13 @@ export const panels: Panel[] = [
     focal: 'center center',
     tint: 'blue',
     words: [
-      { id: 'but-most', text: 'BUT MOST', x: 33, y: 45 },
+      // The phrase repeats here (over the silk bg) with its own line,
+      // then the curve carries down to BUT MOST.
+      { id: 'b2-your',    text: 'your',    x: 30, y: 25 },
+      { id: 'b2-body',    text: 'body',    x: 42, y: 25 },
+      { id: 'b2-is',      text: 'is',      x: 55, y: 25 },
+      { id: 'b2-talking', text: 'talking', x: 65, y: 25 },
+      { id: 'but-most',   text: 'BUT MOST', x: 33, y: 58 },
     ],
   },
 
@@ -151,8 +157,9 @@ export const panels: Panel[] = [
  * Blue section only for now; orange connections to be added next.
  */
 export const connections: Connection[] = [
-  { from: 'body', to: 'is' },                          // YOUR BODY —— IS TALKING
-  { from: 'talking', to: 'but-most', curve: 0.28 },    // curve down to BUT MOST (blue1 -> blue2)
+  { from: 'body', to: 'is' },                          // blue1: YOUR BODY —— IS TALKING
+  { from: 'b2-body', to: 'b2-is' },                    // blue2: same phrase, repeated
+  { from: 'b2-talking', to: 'but-most', curve: 0.28 }, // blue2: curve down to BUT MOST
   { from: 'but-most', to: 'health-systems' },          // into blue3 (AREN'T LISTENING has no line)
 ]
 
