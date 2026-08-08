@@ -6,12 +6,13 @@ import { buildSmoothPath } from "@/lib/path";
 import {
   backgroundOpacity,
   clamp01,
-  lineProgress,
   localProgress,
+  segmentDrawFraction,
+  segmentOpacity,
   statementOpacity,
   wordOpacity,
 } from "@/lib/reveal";
-import type { RoadmapPanel } from "@/lib/types";
+import type { RoadmapPanel, RoadmapWord } from "@/lib/types";
 import { roadmapConfig } from "./roadmapConfig";
 import { PanelBackground } from "./PanelBackground";
 import { PanelOverlay } from "./PanelOverlay";
@@ -29,17 +30,24 @@ const STATEMENT_STYLE: CSSProperties = {
 };
 
 const count = roadmapConfig.length;
-const scatterIndices = roadmapConfig
-  .map((panel, i) => (panel.kind === "scatter" ? i : -1))
-  .filter((i) => i >= 0);
-const firstScatter = scatterIndices[0];
-const lastScatter = scatterIndices[scatterIndices.length - 1];
-const scatterWords = roadmapConfig
-  .filter((panel) => panel.kind === "scatter")
-  .flatMap((panel) => panel.words);
+
+// Each scatter panel owns a connector segment: the previous scatter
+// panel's last word (to bridge the seam) followed by its own words. The
+// segment draws in and fades out with its panel, so the line stays a
+// continuous thread across seams without older segments lingering.
+const scatterPanels = roadmapConfig
+  .map((panel, index) => ({ panel, index }))
+  .filter(({ panel }) => panel.kind === "scatter");
+
+const connectorSegments = scatterPanels.map(({ panel, index }, si) => {
+  const prev = si > 0 ? scatterPanels[si - 1].panel : null;
+  const prevLast = prev ? prev.words[prev.words.length - 1] : null;
+  const points: RoadmapWord[] = prevLast ? [prevLast, ...panel.words] : [...panel.words];
+  return { id: panel.id, index, points };
+});
 
 function Word({ word, forwardedRef, animated }: {
-  word: { id: string; text: string; x: number; y: number };
+  word: RoadmapWord;
   forwardedRef?: (el: HTMLElement | null) => void;
   animated: boolean;
 }) {
@@ -90,12 +98,17 @@ function AnimatedRoadmap() {
   const bgRefs = useRef(new Map<string, HTMLElement>());
   const wordRefs = useRef(new Map<string, HTMLElement>());
   const stmtRefs = useRef(new Map<string, HTMLElement>());
-  const pathRef = useRef<SVGPathElement>(null);
-  const pathLenRef = useRef(0);
+  const segRefs = useRef(new Map<string, SVGPathElement>());
+  const segLenRefs = useRef(new Map<string, number>());
   const [dims, setDims] = useState({ w: 0, h: 0 });
 
-  const pathD = useMemo(
-    () => buildSmoothPath(scatterWords.map((w) => ({ x: (w.x / 100) * dims.w, y: (w.y / 100) * dims.h }))),
+  const segmentPaths = useMemo(
+    () =>
+      connectorSegments.map((seg) => ({
+        id: seg.id,
+        index: seg.index,
+        d: buildSmoothPath(seg.points.map((w) => ({ x: (w.x / 100) * dims.w, y: (w.y / 100) * dims.h }))),
+      })),
     [dims],
   );
 
@@ -111,14 +124,16 @@ function AnimatedRoadmap() {
     return () => ro.disconnect();
   }, []);
 
-  // Whenever the path is rebuilt, refresh its total length for dashoffset.
+  // Whenever segments are rebuilt, refresh each path's length for dashoffset.
   useLayoutEffect(() => {
-    const path = pathRef.current;
-    if (!path) return;
-    const length = path.getTotalLength();
-    pathLenRef.current = length;
-    path.style.strokeDasharray = `${length}`;
-  }, [pathD]);
+    for (const seg of segmentPaths) {
+      const path = segRefs.current.get(seg.id);
+      if (!path) continue;
+      const length = path.getTotalLength();
+      segLenRefs.current.set(seg.id, length);
+      path.style.strokeDasharray = `${length}`;
+    }
+  }, [segmentPaths]);
 
   // Single scroll-progress driver. scrollY is free (no layout read); the
   // outer section's offset is cached and only refreshed on resize.
@@ -159,11 +174,13 @@ function AnimatedRoadmap() {
         });
       });
 
-      const path = pathRef.current;
-      const length = pathLenRef.current;
-      if (path && length) {
-        const lp = lineProgress(p, firstScatter, lastScatter, count);
-        path.style.strokeDashoffset = String(length * (1 - lp));
+      for (const seg of connectorSegments) {
+        const path = segRefs.current.get(seg.id);
+        const length = segLenRefs.current.get(seg.id);
+        if (!path || !length) continue;
+        const local = localProgress(p, seg.index, count);
+        path.style.strokeDashoffset = String(length * (1 - segmentDrawFraction(local)));
+        path.style.opacity = String(segmentOpacity(local));
       }
     };
 
@@ -197,7 +214,7 @@ function AnimatedRoadmap() {
       ro.disconnect();
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [pathD]);
+  }, [segmentPaths]);
 
   return (
     <section ref={outerRef} className="relative" style={{ height: `${count * 100}vh` }}>
@@ -223,14 +240,21 @@ function AnimatedRoadmap() {
             preserveAspectRatio="none"
             aria-hidden="true"
           >
-            <path
-              ref={pathRef}
-              d={pathD}
-              fill="none"
-              stroke="rgba(255,255,255,0.65)"
-              strokeWidth={1}
-              vectorEffect="non-scaling-stroke"
-            />
+            {segmentPaths.map((seg) => (
+              <path
+                key={seg.id}
+                ref={(el) => {
+                  if (el) segRefs.current.set(seg.id, el);
+                  else segRefs.current.delete(seg.id);
+                }}
+                d={seg.d}
+                fill="none"
+                stroke="rgba(255,255,255,0.65)"
+                strokeWidth={1}
+                vectorEffect="non-scaling-stroke"
+                style={{ opacity: 0 }}
+              />
+            ))}
           </svg>
         )}
 

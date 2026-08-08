@@ -42,11 +42,16 @@ export function statementOpacity(local: number) {
   return clamp01(Math.min(fadeIn, fadeOut));
 }
 
-/** Maps overall progress onto the scatter-panel span, so the connector
- *  draws only while the scatter words are on screen. */
-export function lineProgress(progress: number, firstScatter: number, lastScatter: number, count: number) {
-  const span = panelSpan(count);
-  const start = firstScatter * span;
-  const end = (lastScatter + 1) * span;
-  return clamp01((progress - start) / (end - start));
+/** A panel's connector segment draws in across the first 80% of its
+ *  window (roughly synced to its word reveals), leaving room to fade. */
+export function segmentDrawFraction(local: number) {
+  return smoothstep(0, 0.8, local);
+}
+
+/** The segment appears with the panel and fades out as the window ends,
+ *  so older segments don't linger once their panel has scrolled past. */
+export function segmentOpacity(local: number) {
+  const fadeIn = smoothstep(0, 0.1, local);
+  const fadeOut = 1 - smoothstep(0.82, 1, local);
+  return clamp01(Math.min(fadeIn, fadeOut));
 }
