@@ -74,12 +74,10 @@ export const panels: Panel[] = [
     focal: 'center 25%',
     tint: 'blue',
     words: [
-      { id: 'your',    text: 'your',    x: 30, y: 38 },
-      { id: 'body',    text: 'body',    x: 42, y: 38 },
-      { id: 'is',      text: 'is',      x: 55, y: 38 },
-      { id: 'talking', text: 'talking', x: 65, y: 38 },
-      { id: 'every',   text: 'every',   x: 40, y: 58 },
-      { id: 'where',   text: 'where',   x: 52, y: 58 },
+      { id: 'your',    text: 'your',    x: 30, y: 48 },
+      { id: 'body',    text: 'body',    x: 42, y: 48 },
+      { id: 'is',      text: 'is',      x: 55, y: 48 },
+      { id: 'talking', text: 'talking', x: 65, y: 48 },
     ],
   },
 
@@ -90,26 +88,19 @@ export const panels: Panel[] = [
     focal: 'center center',
     tint: 'blue',
     words: [
-      { id: 'but-most',        text: 'BUT MOST',            x: 32, y: 25 },
-      { id: 'health-systems',  text: 'HEALTH SYSTEMS',      x: 55, y: 50 },
-      { id: 'arent-listening', text: 'AREN’T LISTENING', x: 40, y: 75 },
+      { id: 'but-most', text: 'BUT MOST', x: 33, y: 45 },
     ],
   },
 
-  // ── Panel 3 — TRANSITION ───────────────────────────────────────
+  // ── Panel 3 — BLUE (HEALTH SYSTEMS / AREN'T LISTENING) ─────────
   {
     id: 3,
     image: '/blue3.jpg',
     focal: 'center center',
-    tint: 'transition',
+    tint: 'blue',
     words: [
-      { id: 'p3-every',    text: 'every',    x: 25, y: 20 },
-      { id: 'p3-insight',  text: 'insight',  x: 40, y: 20 },
-      { id: 'p3-informed', text: 'informed', x: 55, y: 40 },
-      { id: 'p3-by',       text: 'by',       x: 70, y: 40 },
-      { id: 'p3-what',     text: 'what',     x: 30, y: 60 },
-      { id: 'p3-comes',    text: 'comes',    x: 45, y: 60 },
-      { id: 'p3-next',     text: 'next',     x: 60, y: 80 },
+      { id: 'health-systems',  text: 'HEALTH SYSTEMS',   x: 55, y: 30 },
+      { id: 'arent-listening', text: 'AREN’T LISTENING', x: 40, y: 60 },
     ],
   },
 
@@ -161,9 +152,8 @@ export const panels: Panel[] = [
  */
 export const connections: Connection[] = [
   { from: 'body', to: 'is' },                          // YOUR BODY —— IS TALKING
-  { from: 'talking', to: 'but-most', curve: 0.28 },    // sweep down-left across the seam
-  { from: 'but-most', to: 'health-systems' },          // down-right into panel 2
-  { from: 'health-systems', to: 'arent-listening' },   // down-left
+  { from: 'talking', to: 'but-most', curve: 0.28 },    // curve down to BUT MOST (blue1 -> blue2)
+  { from: 'but-most', to: 'health-systems' },          // into blue3 (AREN'T LISTENING has no line)
 ]
 
 /** Convenience: total number of panels including intro + closing */
