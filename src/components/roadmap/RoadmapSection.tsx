@@ -32,6 +32,7 @@ const clamp01 = (x: number) => Math.min(1, Math.max(0, x))
 
 export function RoadmapSection() {
   const sectionRef = useRef<HTMLElement>(null)
+  const stickyRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
   const [viewportH, setViewportH] = useState(0)
   const [viewportW, setViewportW] = useState(0)
@@ -41,31 +42,36 @@ export function RoadmapSection() {
   const wordEls = useRef(new Map<string, HTMLElement | null>())
   const [wordSizes, setWordSizes] = useState<Map<string, { w: number; h: number }>>(new Map())
 
+  // Measure the pinned viewport itself (its live dvh size). Sizing the image
+  // strip from the container — not window.innerHeight — guarantees they can
+  // never disagree, so no black gap when browser chrome changes the height.
   useEffect(() => {
-    const measure = () => {
-      setViewportH(window.innerHeight)
-      setViewportW(window.innerWidth)
+    const el = stickyRef.current
+    if (!el) return
+    const update = () => {
+      setViewportH(el.clientHeight)
+      setViewportW(el.clientWidth)
     }
-    measure()
+    update()
+    const ro = new ResizeObserver(update)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
+  useEffect(() => {
     let raf = 0
     const tick = () => {
       const el = sectionRef.current
       if (el) {
         const rect = el.getBoundingClientRect()
-        const scrollable = rect.height - window.innerHeight
+        const scrollable = rect.height - (stickyRef.current?.clientHeight ?? window.innerHeight)
         const p = scrollable > 0 ? clamp01(-rect.top / scrollable) : 0
         setProgress(p)
       }
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
-
-    window.addEventListener('resize', measure)
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', measure)
-    }
+    return () => cancelAnimationFrame(raf)
   }, [])
 
   // Measure word widths once the strip has rendered, and on every resize.
@@ -83,7 +89,7 @@ export function RoadmapSection() {
 
   return (
     <section ref={sectionRef} style={{ height: `${OUTER_HEIGHT_VH}vh` }} className="relative bg-black">
-      <div className="sticky top-0 h-dvh w-full overflow-hidden">
+      <div ref={stickyRef} className="sticky top-0 h-dvh w-full overflow-hidden">
         {viewportH > 0 && (
           <div
             className="absolute left-0 top-0 w-full will-change-transform"
