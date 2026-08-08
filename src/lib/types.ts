@@ -1,32 +1,28 @@
-export type WordZone =
-  | "top-left"
-  | "top-center"
-  | "top-right"
-  | "center-left"
-  | "center"
-  | "center-right"
-  | "bottom-left"
-  | "bottom-center"
-  | "bottom-right";
-
 export type RoadmapWord = {
   id: string;
   text: string;
-  zone: WordZone;
-  emphasis?: "large" | "normal";
+  /** Position within the sticky viewport, as a percentage. Constrained to
+   *  the middle 50% box (25–75) so the composition stays centered. */
+  x: number;
+  y: number;
 };
 
-export type RoadmapBackground =
-  | { kind: "image"; src: string; alt: string; focal?: string }
-  | { kind: "gradient"; className: string };
+export type RoadmapPanelKind = "statement" | "scatter";
 
 export type RoadmapTheme = "intro" | "blue" | "orange";
 
-export type RoadmapSectionConfig = {
+export type RoadmapPanel = {
   id: string;
+  kind: RoadmapPanelKind;
   theme: RoadmapTheme;
-  background: RoadmapBackground;
+  /** Image src under /public, or null for the plain intro backdrop. */
+  background: string | null;
+  /** object-position focal point, tuned per photo. */
+  focalPoint: string;
+  /** Tailwind overlay class tuned to each photo's brightness. */
+  overlay: string;
+  /** Scatter words (empty for statement panels). */
   words: RoadmapWord[];
-  showConnector: boolean;
-  showOverlay: boolean;
+  /** Centered statement text for statement panels. */
+  statement?: string;
 };

@@ -23,7 +23,9 @@
 
 html,
 body {
-  overflow-x: hidden;
+  /* clip (not hidden) prevents horizontal scroll without turning the
+     root into a scroll container, which would break position: sticky. */
+  overflow-x: clip;
 }
 
 body {
