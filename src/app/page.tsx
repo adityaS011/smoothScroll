@@ -1,11 +1,11 @@
 import { Hero } from "@/components/hero/Hero";
-import { Roadmap } from "@/components/roadmap/Roadmap";
+import { RoadmapSection } from "@/components/roadmap/RoadmapSection";
 
 export default function Home() {
   return (
     <>
       <Hero />
-      <Roadmap />
+      <RoadmapSection />
     </>
   );
 }
