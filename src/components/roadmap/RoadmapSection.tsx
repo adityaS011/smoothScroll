@@ -46,6 +46,21 @@ function wordOpacityAt(cy: number, viewportCenter: number, viewportH: number) {
   return clamp01(1 - (distanceFrac - REVEAL_FULL) / (REVEAL_END - REVEAL_FULL))
 }
 
+// Words that a line points at. Their reveal is held back until the line has
+// drawn all the way to them, so the flow reads: word → line → word.
+const destinationIds = new Set(connections.map((c) => c.to))
+
+// Reveal for a word. Plain words fade with distance. Destination words stay
+// hidden on the way in until the line reaches them (~REVEAL_FULL below the
+// center, where the line finishes drawing), then fade in; on the way out they
+// fade like any other word.
+function wordReveal(cy: number, viewportCenter: number, viewportH: number, isDestination: boolean) {
+  if (!isDestination) return wordOpacityAt(cy, viewportCenter, viewportH)
+  const signed = (cy - viewportCenter) / viewportH
+  if (signed < 0) return wordOpacityAt(cy, viewportCenter, viewportH)
+  return clamp01((REVEAL_FULL - signed) / 0.15)
+}
+
 export function RoadmapSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
@@ -331,7 +346,7 @@ function WordsLayer({
                     left: `${w.x}%`,
                     top: wordY,
                     transform: 'translate(-50%, -50%)',
-                    opacity: wordOpacityAt(wordY, viewportCenter, viewportH),
+                    opacity: wordReveal(wordY, viewportCenter, viewportH, destinationIds.has(w.id)),
                   }}
                 />
               )
@@ -342,16 +357,16 @@ function WordsLayer({
                 <div
                   key={`row-${panel.id}-${ri}`}
                   className="absolute flex items-center"
-                  style={{
-                    left: `${row.x}%`,
-                    top: rowY,
-                    transform: 'translate(-50%, -50%)',
-                    gap: WORD_GAP,
-                    opacity: wordOpacityAt(rowY, viewportCenter, viewportH),
-                  }}
+                  style={{ left: `${row.x}%`, top: rowY, transform: 'translate(-50%, -50%)', gap: WORD_GAP }}
                 >
                   {row.words.map((w) => (
-                    <Word key={w.id} id={w.id} text={w.text} registerRef={registerRef} />
+                    <Word
+                      key={w.id}
+                      id={w.id}
+                      text={w.text}
+                      registerRef={registerRef}
+                      style={{ opacity: wordReveal(rowY, viewportCenter, viewportH, destinationIds.has(w.id)) }}
+                    />
                   ))}
                 </div>
               )
@@ -447,9 +462,11 @@ function LineLayer({
       {segments.map((s) => {
         const len = lengths.get(s.key) ?? 0
 
-        // A line is only as visible as its dimmer endpoint word, so it fades
-        // out with its words and never leaves a stub pointing off-screen.
-        const opacity = Math.min(
+        // Visible while either endpoint is on screen, so it can draw toward a
+        // destination word that hasn't revealed yet (the word waits for the
+        // line). It never stubs off-screen because an undrawn line has its
+        // full length dashed away below.
+        const opacity = Math.max(
           wordOpacityAt(s.fromY, viewportCenter, viewportH),
           wordOpacityAt(s.toY, viewportCenter, viewportH),
         )
