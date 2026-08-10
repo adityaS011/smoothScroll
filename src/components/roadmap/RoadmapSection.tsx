@@ -52,20 +52,26 @@ export function RoadmapSection() {
   const wordEls = useRef(new Map<string, HTMLElement | null>())
   const [wordSizes, setWordSizes] = useState<Map<string, { w: number; h: number }>>(new Map())
 
-  // Measure the pinned viewport itself (its live dvh size). Sizing the image
-  // strip from the container — not window.innerHeight — guarantees they can
-  // never disagree, so no black gap when browser chrome changes the height.
+  // Size the strip from window.innerHeight (the real viewport) and pin the
+  // sticky container to that same pixel height. Measuring dvh off the sticky
+  // could drift from innerHeight and leave a gap under each image; driving
+  // both from one value keeps images filling the viewport exactly. Width is
+  // the container's content width (excludes the scrollbar).
   useEffect(() => {
     const el = stickyRef.current
     if (!el) return
     const update = () => {
-      setViewportH(el.clientHeight)
+      setViewportH(window.innerHeight)
       setViewportW(el.clientWidth)
     }
     update()
+    window.addEventListener('resize', update)
     const ro = new ResizeObserver(update)
     ro.observe(el)
-    return () => ro.disconnect()
+    return () => {
+      window.removeEventListener('resize', update)
+      ro.disconnect()
+    }
   }, [])
 
   useEffect(() => {
@@ -99,7 +105,11 @@ export function RoadmapSection() {
 
   return (
     <section ref={sectionRef} style={{ height: `${OUTER_HEIGHT_VH}vh` }} className="relative bg-black">
-      <div ref={stickyRef} className="sticky top-0 h-dvh w-full overflow-hidden">
+      <div
+        ref={stickyRef}
+        className="sticky top-0 w-full overflow-hidden"
+        style={{ height: viewportH ? `${viewportH}px` : '100dvh' }}
+      >
         {viewportH > 0 && (
           <div
             className="absolute left-0 top-0 w-full will-change-transform"
@@ -138,6 +148,7 @@ export function RoadmapSection() {
                   headline={panel.headline}
                   viewportH={viewportH}
                   stripTranslateY={translateY}
+                  word
                 />
               ) : null,
             )}
@@ -147,6 +158,7 @@ export function RoadmapSection() {
               headline={closingPanel.headline}
               viewportH={viewportH}
               stripTranslateY={translateY}
+              word
             />
           </div>
         )}
@@ -196,23 +208,27 @@ function BackgroundLayer({ viewportH }: { viewportH: number }) {
   )
 }
 
-// ── Title panels (intro + closing) — big centered headline that fades on
-// scroll like the words. `dark` = dark text (for the white intro panel).
+// ── Title panels — a centered statement that fades on scroll like the words.
+// `dark` = dark text (white intro panel). `word` = small tracked word-style
+// type (used by the orange statement panels) instead of the big italic head.
 function TitlePanel({
   index,
   headline,
   viewportH,
   stripTranslateY,
   dark = false,
+  word = false,
 }: {
   index: number
   headline: string
   viewportH: number
   stripTranslateY: number
   dark?: boolean
+  word?: boolean
 }) {
   const centerY = index * viewportH + viewportH / 2
   const opacity = wordOpacityAt(centerY, stripTranslateY + viewportH / 2, viewportH)
+  const color = dark ? 'text-neutral-900' : 'text-white'
 
   return (
     <div
@@ -220,8 +236,12 @@ function TitlePanel({
       style={{ top: index * viewportH, height: viewportH, opacity }}
     >
       <h2
-        className={`max-w-3xl italic font-bold ${dark ? 'text-neutral-900' : 'text-white'}`}
-        style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3rem)', lineHeight: 1.15, letterSpacing: '-0.01em' }}
+        className={`max-w-3xl ${color} ${word ? 'font-medium uppercase' : 'italic font-bold'}`}
+        style={
+          word
+            ? { fontSize: 'clamp(0.72rem, 0.95vw, 0.95rem)', letterSpacing: '0.22em', lineHeight: 1.6 }
+            : { fontSize: 'clamp(1.75rem, 4.5vw, 3rem)', lineHeight: 1.15, letterSpacing: '-0.01em' }
+        }
       >
         {headline}
       </h2>
