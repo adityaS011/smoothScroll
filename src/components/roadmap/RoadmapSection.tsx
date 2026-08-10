@@ -18,8 +18,11 @@ import type { PanelWord } from './roadmap-data'
 const PANEL_TOTAL = 1 + panels.length + 1
 const OUTER_HEIGHT_VH = PANEL_TOTAL * 100
 
-const REVEAL_TOP = 0.25
-const REVEAL_BOTTOM = 0.75
+// A word is fully visible within REVEAL_FULL of the viewport center (as a
+// fraction of viewport height), then fades to nothing by REVEAL_END. Larger
+// values make words linger longer on screen. Still a pure function of scroll.
+const REVEAL_FULL = 0.24
+const REVEAL_END = 0.48
 
 // Every word flattened with the index of the panel it belongs to, so its
 // position in the strip is (panelIndex + 1) × viewportH + y%.
@@ -29,6 +32,13 @@ const allWords: FlatWord[] = panels.flatMap((panel, panelIndex) =>
 )
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x))
+
+// A word (or connector endpoint) at strip-Y `cy` is fully visible within
+// REVEAL_FULL of the viewport center and fully faded by REVEAL_END.
+function wordOpacityAt(cy: number, viewportCenter: number, viewportH: number) {
+  const distanceFrac = Math.abs(cy - viewportCenter) / viewportH
+  return clamp01(1 - (distanceFrac - REVEAL_FULL) / (REVEAL_END - REVEAL_FULL))
+}
 
 export function RoadmapSection() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -217,14 +227,12 @@ function WordsLayer({
   registerRef: (id: string, el: HTMLElement | null) => void
 }) {
   const viewportCenter = stripTranslateY + viewportH / 2
-  const revealBand = (viewportH * (REVEAL_BOTTOM - REVEAL_TOP)) / 2
 
   return (
     <>
       {allWords.map((word) => {
         const wordY = (word.panelIndex + 1) * viewportH + (word.y / 100) * viewportH
-        const distance = Math.abs(wordY - viewportCenter)
-        const opacity = clamp01(1 - (distance - revealBand * 0.3) / (revealBand * 0.8))
+        const opacity = wordOpacityAt(wordY, viewportCenter, viewportH)
         const isLarge = word.size === 'lg'
 
         return (
@@ -253,7 +261,7 @@ function WordsLayer({
 }
 
 // ── Lines — one clean segment per named connection ───────────────────────
-type Segment = { key: string; d: string; midY: number }
+type Segment = { key: string; d: string; fromY: number; toY: number }
 
 // Distance from a word's center to its bounding-box edge along a unit
 // direction — so a line can start/end exactly at the edge.
@@ -309,7 +317,7 @@ function buildSegments(
       d = `M ${sx.toFixed(1)} ${sy.toFixed(1)} L ${ex.toFixed(1)} ${ey.toFixed(1)}`
     }
 
-    segments.push({ key: `${c.from}->${c.to}`, d, midY: (sy + ey) / 2 })
+    segments.push({ key: `${c.from}->${c.to}`, d, fromY: a.cy, toY: b.cy })
   }
   return segments
 }
@@ -344,6 +352,7 @@ function LineLayer({
   }, [segments])
 
   const stripHeight = PANEL_TOTAL * viewportH
+  const viewportCenter = stripTranslateY + viewportH / 2
 
   return (
     <svg
@@ -354,10 +363,19 @@ function LineLayer({
     >
       {segments.map((s) => {
         const len = lengths.get(s.key) ?? 0
-        // Draws in as the segment's midpoint rises through the lower part of
-        // the viewport; un-draws on scroll back up. Pure function of scroll.
-        const vpos = s.midY - stripTranslateY
-        const drawFrac = clamp01((0.8 * viewportH - vpos) / (0.25 * viewportH))
+
+        // A line is only as visible as its dimmer endpoint word, so it fades
+        // out with its words and never leaves a stub pointing off-screen.
+        const opacity = Math.min(
+          wordOpacityAt(s.fromY, viewportCenter, viewportH),
+          wordOpacityAt(s.toY, viewportCenter, viewportH),
+        )
+
+        // Draws toward its destination word: fully drawn once the to-word
+        // reaches its visible zone, un-drawn while it's still far below.
+        // Pure function of scroll, symmetric on the way back up.
+        const toDistBelow = (s.toY - viewportCenter) / viewportH
+        const drawFrac = clamp01(1 - (toDistBelow - REVEAL_FULL) / (REVEAL_END - REVEAL_FULL))
         const dashOffset = len * (1 - drawFrac)
 
         return (
@@ -372,6 +390,7 @@ function LineLayer({
             strokeWidth="1"
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
+            opacity={opacity}
             strokeDasharray={len || 9999}
             strokeDashoffset={len ? dashOffset : 9999}
           />
