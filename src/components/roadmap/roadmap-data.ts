@@ -27,6 +27,7 @@ export type Panel = {
   focal?: string      // object-position, defaults to 'center 30%'
   tint: PanelTint
   words: PanelWord[]
+  headline?: string   // if set, the panel is a centered statement (no words)
 }
 
 /**
@@ -57,7 +58,7 @@ export const introPanel = {
 export const closingPanel = {
   id: 999,
   tint: 'orange' as const,
-  headline: 'and the ring stays quiet, until it matters.',
+  headline: 'Shaped by your psychology',
   image: '/orange4.jpg',
   focal: 'center center',
 }
@@ -107,44 +108,42 @@ export const panels: Panel[] = [
     ],
   },
 
-  // ── Panel 4 — ORANGE ───────────────────────────────────────────
+  // ── Panel 4 — ORANGE 1 — centered statement ───────────────────
   {
     id: 4,
     image: '/orange1.jpg',
     focal: 'center 40%',
     tint: 'orange',
-    words: [
-      { id: 'patterns',   text: 'patterns',  x: 28, y: 30 },
-      { id: 'signals',    text: 'signals',   x: 65, y: 30 },
-      { id: 'insight-lg', text: 'INSIGHT',   x: 50, y: 55, size: 'lg' },
-      { id: 'your-data',  text: 'your data', x: 35, y: 80 },
-    ],
+    words: [],
+    headline: 'So we built one that has',
   },
 
-  // ── Panel 5 — ORANGE ───────────────────────────────────────────
+  // ── Panel 5 — ORANGE 2 — "EVERY INSIGHT INFORMED —— BY WHAT COMES NEXT"
   {
     id: 5,
     image: '/orange2.jpg',
     focal: 'center 30%',
     tint: 'orange',
     words: [
-      { id: 'turning', text: 'turning', x: 30, y: 30 },
-      { id: 'noise',   text: 'noise',   x: 55, y: 30 },
-      { id: 'into',    text: 'into',    x: 45, y: 55 },
-      { id: 'knowing', text: 'knowing', x: 60, y: 75 },
+      { id: 'o-every',    text: 'EVERY',    x: 28, y: 48 },
+      { id: 'o-insight',  text: 'INSIGHT',  x: 39, y: 48 },
+      { id: 'o-informed', text: 'INFORMED', x: 52, y: 48 },
+      { id: 'o-bywhat',   text: 'BY WHAT\nCOMES NEXT', x: 76, y: 48 },
     ],
   },
 
-  // ── Panel 6 — ORANGE ───────────────────────────────────────────
+  // ── Panel 6 — ORANGE 3 — "WHERE EVERY SESSION COMPOUNDS —— ON THE LAST"
   {
     id: 6,
     image: '/orange3.jpg',
     focal: 'center 25%',
     tint: 'orange',
     words: [
-      { id: 'action',        text: 'ACTION',        x: 50, y: 30, size: 'lg' },
-      { id: 'follows',       text: 'follows',       x: 35, y: 60 },
-      { id: 'understanding', text: 'understanding', x: 55, y: 75 },
+      { id: 'o-where',     text: 'WHERE',     x: 22, y: 48 },
+      { id: 'o-every2',    text: 'EVERY',     x: 32, y: 48 },
+      { id: 'o-session',   text: 'SESSION',   x: 43, y: 48 },
+      { id: 'o-compounds', text: 'COMPOUNDS', x: 56, y: 48 },
+      { id: 'o-onthelast', text: 'ON\nTHE LAST', x: 78, y: 48 },
     ],
   },
 ]
@@ -158,6 +157,8 @@ export const connections: Connection[] = [
   { from: 'b2-body', to: 'b2-talking' },               // blue2: "your body —— is talking"
   { from: 'b2-talking', to: 'but-most', curve: -0.38 }, // blue2: curve down to BUT MOST
   { from: 'but-most', to: 'health-systems' },          // into blue3 (AREN'T LISTENING has no line)
+  { from: 'o-informed', to: 'o-bywhat' },              // orange2: —— BY WHAT COMES NEXT
+  { from: 'o-compounds', to: 'o-onthelast' },          // orange3: —— ON THE LAST
 ]
 
 /** Convenience: total number of panels including intro + closing */

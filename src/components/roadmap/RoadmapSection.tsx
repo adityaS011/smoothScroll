@@ -129,6 +129,19 @@ export function RoadmapSection() {
               registerRef={(id, el) => wordEls.current.set(id, el)}
             />
 
+            {/* Mid-sequence statement panels (e.g. orange 1 & 4). */}
+            {panels.map((panel, i) =>
+              panel.headline ? (
+                <TitlePanel
+                  key={`stmt-${panel.id}`}
+                  index={i + 1}
+                  headline={panel.headline}
+                  viewportH={viewportH}
+                  stripTranslateY={translateY}
+                />
+              ) : null,
+            )}
+
             <TitlePanel
               index={PANEL_TOTAL - 1}
               headline={closingPanel.headline}
@@ -249,7 +262,8 @@ function WordsLayer({
               letterSpacing: isLarge ? '0.05em' : '0.22em',
               fontWeight: isLarge ? 700 : 500,
               fontStyle: isLarge ? 'italic' : 'normal',
-              whiteSpace: 'nowrap',
+              textAlign: 'center',
+              whiteSpace: word.text.includes('\n') ? 'pre-line' : 'nowrap',
             }}
           >
             {word.text}
