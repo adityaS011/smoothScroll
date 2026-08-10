@@ -118,17 +118,21 @@ export const panels: Panel[] = [
     headline: 'So we built one that has',
   },
 
-  // ── Panel 5 — ORANGE 2 — "EVERY INSIGHT INFORMED —— BY WHAT COMES NEXT"
+  // ── Panel 5 — ORANGE 2 — two rows joined by a diagonal ─────────
+  // Top row: EVERY INSIGHT INFORMED ; bottom row: BY WHAT COMES NEXT
   {
     id: 5,
     image: '/orange2.jpg',
     focal: 'center 30%',
     tint: 'orange',
     words: [
-      { id: 'o-every',    text: 'EVERY',    x: 28, y: 48 },
-      { id: 'o-insight',  text: 'INSIGHT',  x: 39, y: 48 },
-      { id: 'o-informed', text: 'INFORMED', x: 52, y: 48 },
-      { id: 'o-bywhat',   text: 'BY WHAT\nCOMES NEXT', x: 76, y: 48 },
+      { id: 'o-every',    text: 'EVERY',    x: 45, y: 32 },
+      { id: 'o-insight',  text: 'INSIGHT',  x: 55, y: 32 },
+      { id: 'o-informed', text: 'INFORMED', x: 66, y: 32 },
+      { id: 'o-by',    text: 'BY',    x: 30, y: 64 },
+      { id: 'o-what',  text: 'WHAT',  x: 38, y: 64 },
+      { id: 'o-comes', text: 'COMES', x: 46, y: 64 },
+      { id: 'o-next',  text: 'NEXT',  x: 54, y: 64 },
     ],
   },
 
@@ -157,7 +161,7 @@ export const connections: Connection[] = [
   { from: 'b2-body', to: 'b2-talking' },               // blue2: "your body —— is talking"
   { from: 'b2-talking', to: 'but-most', curve: -0.38 }, // blue2: curve down to BUT MOST
   { from: 'but-most', to: 'health-systems' },          // into blue3 (AREN'T LISTENING has no line)
-  { from: 'o-informed', to: 'o-bywhat' },              // orange2: —— BY WHAT COMES NEXT
+  { from: 'o-insight', to: 'o-comes' },                // orange2: diagonal, top row -> bottom row
   { from: 'o-compounds', to: 'o-onthelast' },          // orange3: —— ON THE LAST
 ]
 
