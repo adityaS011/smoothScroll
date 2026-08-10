@@ -42,14 +42,13 @@ export type Connection = {
 }
 
 /**
- * Panel 1 (intro title) — headline baked into white.jpg, no live text.
+ * Panel 1 (intro title) — plain white background with live headline text
+ * (rendered by RoadmapSection, fades on scroll like the words).
  */
 export const introPanel = {
   id: 0,
   tint: 'blue' as const,
   headline: "Your health doesn't move in straight lines.",
-  image: '/white.jpg',
-  focal: 'center center',
 }
 
 /**

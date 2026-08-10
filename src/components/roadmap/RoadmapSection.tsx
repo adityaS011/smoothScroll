@@ -107,7 +107,14 @@ export function RoadmapSection() {
           >
             <BackgroundLayer viewportH={viewportH} />
 
-            {/* Intro headline is baked into white.jpg, so no live TitlePanel here. */}
+            {/* Intro headline — live dark text on the white panel. */}
+            <TitlePanel
+              index={0}
+              headline={introPanel.headline}
+              viewportH={viewportH}
+              stripTranslateY={translateY}
+              dark
+            />
 
             {/* Line under words so words always sit on top of any grazing. */}
             <LineLayer
@@ -139,17 +146,8 @@ export function RoadmapSection() {
 function BackgroundLayer({ viewportH }: { viewportH: number }) {
   return (
     <>
-      {/* Intro: white.jpg (a designed light slide, no dark tint). */}
-      <div className="absolute left-0 w-full" style={{ top: 0, height: viewportH }}>
-        <Image
-          src={introPanel.image}
-          alt=""
-          fill
-          sizes="100vw"
-          priority
-          style={{ objectFit: 'cover', objectPosition: introPanel.focal }}
-        />
-      </div>
+      {/* Intro: plain white background; the headline is live text, not baked. */}
+      <div className="absolute left-0 w-full bg-white" style={{ top: 0, height: viewportH }} />
       {panels.map((panel, i) => (
         <div
           key={panel.id}
@@ -185,21 +183,23 @@ function BackgroundLayer({ viewportH }: { viewportH: number }) {
   )
 }
 
-// ── Title panels (closing only) ──────────────────────────────────────────
+// ── Title panels (intro + closing) — big centered headline that fades on
+// scroll like the words. `dark` = dark text (for the white intro panel).
 function TitlePanel({
   index,
   headline,
   viewportH,
   stripTranslateY,
+  dark = false,
 }: {
   index: number
   headline: string
   viewportH: number
   stripTranslateY: number
+  dark?: boolean
 }) {
   const centerY = index * viewportH + viewportH / 2
-  const distanceFromViewportCenter = Math.abs(centerY - stripTranslateY - viewportH / 2)
-  const opacity = Math.max(0, 1 - distanceFromViewportCenter / (viewportH * 0.5))
+  const opacity = wordOpacityAt(centerY, stripTranslateY + viewportH / 2, viewportH)
 
   return (
     <div
@@ -207,7 +207,7 @@ function TitlePanel({
       style={{ top: index * viewportH, height: viewportH, opacity }}
     >
       <h2
-        className="max-w-3xl text-white italic font-bold"
+        className={`max-w-3xl italic font-bold ${dark ? 'text-neutral-900' : 'text-white'}`}
         style={{ fontSize: 'clamp(1.75rem, 4.5vw, 3rem)', lineHeight: 1.15, letterSpacing: '-0.01em' }}
       >
         {headline}
