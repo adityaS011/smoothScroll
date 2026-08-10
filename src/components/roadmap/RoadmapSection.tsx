@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import Image from 'next/image'
 import { connections, panels, introPanel, closingPanel } from './roadmap-data'
-import type { PanelWord } from './roadmap-data'
 
 /**
  * Sticky scrollytelling: a tall outer section, a pinned viewport, and a
@@ -24,12 +23,19 @@ const OUTER_HEIGHT_VH = PANEL_TOTAL * 100
 const REVEAL_FULL = 0.24
 const REVEAL_END = 0.48
 
-// Every word flattened with the index of the panel it belongs to, so its
-// position in the strip is (panelIndex + 1) × viewportH + y%.
-type FlatWord = PanelWord & { panelIndex: number }
-const allWords: FlatWord[] = panels.flatMap((panel, panelIndex) =>
-  panel.words.map((w) => ({ ...w, panelIndex })),
-)
+// Shared word type: small, tracked, centered. One gap value drives spacing
+// in every row so it's identical everywhere and scales with the viewport.
+const WORD_GAP = 'clamp(0.75rem, 3.4vw, 3.25rem)'
+const WORD_TEXT_STYLE: CSSProperties = {
+  fontSize: 'clamp(0.72rem, 0.95vw, 0.95rem)',
+  letterSpacing: '0.22em',
+  fontWeight: 500,
+  textAlign: 'center',
+}
+
+// A measured word box in strip coordinates (center + half-size), used for
+// connector geometry so lines meet the words wherever flex lays them out.
+type WordBox = { cx: number; cy: number; hw: number; hh: number }
 
 const clamp01 = (x: number) => Math.min(1, Math.max(0, x))
 
@@ -43,14 +49,16 @@ function wordOpacityAt(cy: number, viewportCenter: number, viewportH: number) {
 export function RoadmapSection() {
   const sectionRef = useRef<HTMLElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
+  const stripRef = useRef<HTMLDivElement>(null)
   const [progress, setProgress] = useState(0)
   const [viewportH, setViewportH] = useState(0)
   const [viewportW, setViewportW] = useState(0)
 
-  // Measured word box sizes (px), keyed by word id — used to stop each line
-  // at the word's edge. Remeasured on resize.
+  // Each word's measured box in strip coordinates, keyed by id — used to run
+  // connector lines to wherever flex actually laid the words out. Remeasured
+  // on resize.
   const wordEls = useRef(new Map<string, HTMLElement | null>())
-  const [wordSizes, setWordSizes] = useState<Map<string, { w: number; h: number }>>(new Map())
+  const [wordBoxes, setWordBoxes] = useState<Map<string, WordBox>>(new Map())
 
   // Size the strip from window.innerHeight (the real viewport) and pin the
   // sticky container to that same pixel height. Measuring dvh off the sticky
@@ -90,14 +98,33 @@ export function RoadmapSection() {
     return () => cancelAnimationFrame(raf)
   }, [])
 
-  // Measure word widths once the strip has rendered, and on every resize.
+  // Measure each word's box in strip coordinates once the strip has laid out,
+  // and on every resize. Subtracting the strip's own rect cancels its scroll
+  // transform, giving stable strip-local coordinates.
   useEffect(() => {
     if (!viewportW || !viewportH) return
-    const next = new Map<string, { w: number; h: number }>()
-    wordEls.current.forEach((el, id) => {
-      if (el) next.set(id, { w: el.offsetWidth, h: el.offsetHeight })
-    })
-    setWordSizes(next)
+    const measure = () => {
+      const strip = stripRef.current
+      if (!strip) return
+      const sr = strip.getBoundingClientRect()
+      const next = new Map<string, WordBox>()
+      wordEls.current.forEach((el, id) => {
+        if (!el) return
+        const r = el.getBoundingClientRect()
+        next.set(id, {
+          cx: r.left - sr.left + r.width / 2,
+          cy: r.top - sr.top + r.height / 2,
+          hw: r.width / 2,
+          hh: r.height / 2,
+        })
+      })
+      setWordBoxes(next)
+    }
+    const raf = requestAnimationFrame(measure)
+    // Web fonts can reflow the words after the first measure — re-measure once
+    // they're ready so the connectors stay pinned to the words.
+    document.fonts?.ready.then(() => requestAnimationFrame(measure))
+    return () => cancelAnimationFrame(raf)
   }, [viewportW, viewportH])
 
   const stripHeight = PANEL_TOTAL * viewportH
@@ -112,6 +139,7 @@ export function RoadmapSection() {
       >
         {viewportH > 0 && (
           <div
+            ref={stripRef}
             className="absolute left-0 top-0 w-full will-change-transform"
             style={{ height: `${stripHeight}px`, transform: `translate3d(0, ${-translateY}px, 0)` }}
           >
@@ -131,7 +159,7 @@ export function RoadmapSection() {
               viewportW={viewportW}
               viewportH={viewportH}
               stripTranslateY={translateY}
-              wordSizes={wordSizes}
+              wordBoxes={wordBoxes}
             />
             <WordsLayer
               viewportH={viewportH}
@@ -249,7 +277,30 @@ function TitlePanel({
   )
 }
 
-// ── Words — every word, absolutely positioned, fading by distance ────────
+// A single word span (used both as an absolute single and as a flex-row item).
+function Word({
+  id,
+  text,
+  registerRef,
+  style,
+}: {
+  id: string
+  text: string
+  registerRef: (id: string, el: HTMLElement | null) => void
+  style?: CSSProperties
+}) {
+  return (
+    <span
+      ref={(el) => registerRef(id, el)}
+      className="text-white select-none pointer-events-none"
+      style={{ ...WORD_TEXT_STYLE, whiteSpace: text.includes('\n') ? 'pre-line' : 'nowrap', ...style }}
+    >
+      {text}
+    </span>
+  )
+}
+
+// ── Words — scattered singles + evenly-spaced rows, fading by distance ────
 function WordsLayer({
   viewportH,
   stripTranslateY,
@@ -263,31 +314,49 @@ function WordsLayer({
 
   return (
     <>
-      {allWords.map((word) => {
-        const wordY = (word.panelIndex + 1) * viewportH + (word.y / 100) * viewportH
-        const opacity = wordOpacityAt(wordY, viewportCenter, viewportH)
-        const isLarge = word.size === 'lg'
-
+      {panels.map((panel, panelIndex) => {
+        const panelTop = (panelIndex + 1) * viewportH
         return (
-          <span
-            key={word.id}
-            ref={(el) => registerRef(word.id, el)}
-            className="absolute text-white select-none pointer-events-none"
-            style={{
-              left: `${word.x}%`,
-              top: wordY,
-              transform: 'translate(-50%, -50%)',
-              opacity,
-              fontSize: isLarge ? 'clamp(1.5rem, 3.5vw, 2.75rem)' : 'clamp(0.72rem, 0.95vw, 0.95rem)',
-              letterSpacing: isLarge ? '0.05em' : '0.22em',
-              fontWeight: isLarge ? 700 : 500,
-              fontStyle: isLarge ? 'italic' : 'normal',
-              textAlign: 'center',
-              whiteSpace: word.text.includes('\n') ? 'pre-line' : 'nowrap',
-            }}
-          >
-            {word.text}
-          </span>
+          <Fragment key={panel.id}>
+            {panel.words.map((w) => {
+              const wordY = panelTop + (w.y / 100) * viewportH
+              return (
+                <Word
+                  key={w.id}
+                  id={w.id}
+                  text={w.text}
+                  registerRef={registerRef}
+                  style={{
+                    position: 'absolute',
+                    left: `${w.x}%`,
+                    top: wordY,
+                    transform: 'translate(-50%, -50%)',
+                    opacity: wordOpacityAt(wordY, viewportCenter, viewportH),
+                  }}
+                />
+              )
+            })}
+            {(panel.rows ?? []).map((row, ri) => {
+              const rowY = panelTop + (row.y / 100) * viewportH
+              return (
+                <div
+                  key={`row-${panel.id}-${ri}`}
+                  className="absolute flex items-center"
+                  style={{
+                    left: `${row.x}%`,
+                    top: rowY,
+                    transform: 'translate(-50%, -50%)',
+                    gap: WORD_GAP,
+                    opacity: wordOpacityAt(rowY, viewportCenter, viewportH),
+                  }}
+                >
+                  {row.words.map((w) => (
+                    <Word key={w.id} id={w.id} text={w.text} registerRef={registerRef} />
+                  ))}
+                </div>
+              )
+            })}
+          </Fragment>
         )
       })}
     </>
@@ -305,29 +374,12 @@ function boxExit(hw: number, hh: number, ux: number, uy: number) {
   return Math.min(tx, ty)
 }
 
-function buildSegments(
-  vw: number,
-  vh: number,
-  wordSizes: Map<string, { w: number; h: number }>,
-): Segment[] {
-  if (!vw || !vh) return []
-
-  const geo = new Map<string, { cx: number; cy: number; hw: number; hh: number }>()
-  for (const w of allWords) {
-    const size = wordSizes.get(w.id)
-    geo.set(w.id, {
-      cx: (w.x / 100) * vw,
-      cy: (w.panelIndex + 1) * vh + (w.y / 100) * vh,
-      hw: (size?.w ?? 48) / 2,
-      hh: (size?.h ?? 18) / 2,
-    })
-  }
-
+function buildSegments(boxes: Map<string, WordBox>): Segment[] {
   const GAP = 10
   const segments: Segment[] = []
   for (const c of connections) {
-    const a = geo.get(c.from)
-    const b = geo.get(c.to)
+    const a = boxes.get(c.from)
+    const b = boxes.get(c.to)
     if (!a || !b) continue
 
     const dx = b.cx - a.cx
@@ -360,20 +412,17 @@ function LineLayer({
   viewportW,
   viewportH,
   stripTranslateY,
-  wordSizes,
+  wordBoxes,
 }: {
   viewportW: number
   viewportH: number
   stripTranslateY: number
-  wordSizes: Map<string, { w: number; h: number }>
+  wordBoxes: Map<string, WordBox>
 }) {
   const pathEls = useRef(new Map<string, SVGPathElement | null>())
   const [lengths, setLengths] = useState<Map<string, number>>(new Map())
 
-  const segments = useMemo(
-    () => buildSegments(viewportW, viewportH, wordSizes),
-    [viewportW, viewportH, wordSizes],
-  )
+  const segments = useMemo(() => buildSegments(wordBoxes), [wordBoxes])
 
   // Measure each path's length when geometry changes (mount / resize).
   useEffect(() => {

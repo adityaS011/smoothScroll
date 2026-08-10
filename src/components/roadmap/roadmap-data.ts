@@ -16,7 +16,15 @@ export type PanelWord = {
   text: string
   x: number       // % of panel width (0–100)
   y: number       // % of panel height (0–100)
-  size?: 'sm' | 'md' | 'lg'   // small=body, md=default, lg=hero (INSIGHT/ACTION)
+}
+
+// A horizontal row of words, laid out with one consistent gap (flex) and
+// centered on (x, y). Guarantees identical spacing between words everywhere.
+export type RowWord = { id: string; text: string }
+export type WordRow = {
+  x: number       // % — horizontal center of the row
+  y: number       // % — vertical center of the row
+  words: RowWord[]
 }
 
 export type PanelTint = 'blue' | 'transition' | 'orange'
@@ -26,7 +34,8 @@ export type Panel = {
   image: string       // path to a local image under /public
   focal?: string      // object-position, defaults to 'center 30%'
   tint: PanelTint
-  words: PanelWord[]
+  words: PanelWord[]  // individually placed words (scattered singles)
+  rows?: WordRow[]    // evenly-spaced word rows
   headline?: string   // if set, the panel is a centered statement (no words)
 }
 
@@ -73,26 +82,38 @@ export const panels: Panel[] = [
     image: '/blue1.jpg',
     focal: 'center 25%',
     tint: 'blue',
-    words: [
-      { id: 'your',    text: 'your',    x: 30, y: 48 },
-      { id: 'body',    text: 'body',    x: 42, y: 48 },
-      { id: 'is',      text: 'is',      x: 55, y: 48 },
-      { id: 'talking', text: 'talking', x: 65, y: 48 },
+    words: [],
+    rows: [
+      {
+        x: 50,
+        y: 48,
+        words: [
+          { id: 'your', text: 'your' },
+          { id: 'body', text: 'body' },
+          { id: 'is', text: 'is' },
+          { id: 'talking', text: 'talking' },
+        ],
+      },
     ],
   },
 
   // ── Panel 2 — BLUE (deeper) ────────────────────────────────────
+  // Phrase repeats over the silk, then a curve carries down to BUT MOST.
   {
     id: 2,
     image: '/blue2.jpg',
     focal: 'center center',
     tint: 'blue',
-    words: [
-      // The phrase repeats here (over the silk bg) with its own line,
-      // then the curve carries down to BUT MOST.
-      { id: 'b2-body',    text: 'your body',    x: 35, y: 25 },
-      { id: 'b2-talking', text: 'is talking', x: 60, y: 25 },
-      { id: 'but-most',   text: 'BUT MOST', x: 33, y: 68 },
+    words: [{ id: 'but-most', text: 'BUT MOST', x: 33, y: 68 }],
+    rows: [
+      {
+        x: 50,
+        y: 25,
+        words: [
+          { id: 'b2-body', text: 'your body' },
+          { id: 'b2-talking', text: 'is talking' },
+        ],
+      },
     ],
   },
 
@@ -119,20 +140,32 @@ export const panels: Panel[] = [
   },
 
   // ── Panel 5 — ORANGE 2 — two rows joined by a diagonal ─────────
-  // Top row: EVERY INSIGHT INFORMED ; bottom row: BY WHAT COMES NEXT
   {
     id: 5,
     image: '/orange2.jpg',
     focal: 'center 30%',
     tint: 'orange',
-    words: [
-      { id: 'o-every',    text: 'EVERY',    x: 45, y: 32 },
-      { id: 'o-insight',  text: 'INSIGHT',  x: 55, y: 32 },
-      { id: 'o-informed', text: 'INFORMED', x: 66, y: 32 },
-      { id: 'o-by',    text: 'BY',    x: 30, y: 64 },
-      { id: 'o-what',  text: 'WHAT',  x: 38, y: 64 },
-      { id: 'o-comes', text: 'COMES', x: 46, y: 64 },
-      { id: 'o-next',  text: 'NEXT',  x: 54, y: 64 },
+    words: [],
+    rows: [
+      {
+        x: 56,
+        y: 32,
+        words: [
+          { id: 'o-every', text: 'EVERY' },
+          { id: 'o-insight', text: 'INSIGHT' },
+          { id: 'o-informed', text: 'INFORMED' },
+        ],
+      },
+      {
+        x: 42,
+        y: 64,
+        words: [
+          { id: 'o-by', text: 'BY' },
+          { id: 'o-what', text: 'WHAT' },
+          { id: 'o-comes', text: 'COMES' },
+          { id: 'o-next', text: 'NEXT' },
+        ],
+      },
     ],
   },
 
@@ -142,12 +175,18 @@ export const panels: Panel[] = [
     image: '/orange3.jpg',
     focal: 'center 25%',
     tint: 'orange',
-    words: [
-      { id: 'o-where',     text: 'WHERE',     x: 22, y: 48 },
-      { id: 'o-every2',    text: 'EVERY',     x: 32, y: 48 },
-      { id: 'o-session',   text: 'SESSION',   x: 43, y: 48 },
-      { id: 'o-compounds', text: 'COMPOUNDS', x: 56, y: 48 },
-      { id: 'o-onthelast', text: 'ON\nTHE LAST', x: 78, y: 48 },
+    words: [{ id: 'o-onthelast', text: 'ON\nTHE LAST', x: 80, y: 48 }],
+    rows: [
+      {
+        x: 43,
+        y: 48,
+        words: [
+          { id: 'o-where', text: 'WHERE' },
+          { id: 'o-every2', text: 'EVERY' },
+          { id: 'o-session', text: 'SESSION' },
+          { id: 'o-compounds', text: 'COMPOUNDS' },
+        ],
+      },
     ],
   },
 ]
