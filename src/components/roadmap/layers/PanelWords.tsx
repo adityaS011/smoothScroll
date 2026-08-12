@@ -86,6 +86,11 @@ export function PanelWords({
             top: `${row.y}%`,
             transform: 'translate(-50%, -50%)',
             gap: row.gapScale ? `calc(${WORD_GAP} * ${row.gapScale})` : WORD_GAP,
+            // Anchored at x with no `right`, shrink-to-fit would measure only
+            // the space to the *right* of x — half the panel for a centred row
+            // — and wrap far earlier than it needs to. max-content asks for the
+            // whole line instead and lets maxWidth below be what actually caps.
+            width: 'max-content',
             maxWidth: spreadFrom(row.x),
           }}
         >
@@ -95,8 +100,10 @@ export function PanelWords({
               id={w.id}
               text={w.text}
               register={register}
-              // Row items never break mid-phrase; the row wraps instead.
-              style={{ opacity: opacityOf(row.y, w.id), whiteSpace: 'nowrap' }}
+              // The row wraps before a phrase does, so the break lands between
+              // phrases rather than inside one — unless the phrase is too wide
+              // for the panel on its own, which is what `wrap` is for.
+              style={{ opacity: opacityOf(row.y, w.id), whiteSpace: w.wrap ? 'normal' : 'nowrap' }}
             />
           ))}
         </div>

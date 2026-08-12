@@ -11,7 +11,12 @@ export type PanelWord = {
   y: number
 }
 
-export type RowWord = { id: string; text: string }
+/**
+ * A row word holds together on one line by default, so a two-word phrase like
+ * "your body" never splits down the middle. `wrap` opts a long phrase out of
+ * that, for when the phrase alone is wider than a phone.
+ */
+export type RowWord = { id: string; text: string; wrap?: boolean }
 
 /**
  * Words on one line, spaced by flex — so the gap survives a change of copy,
