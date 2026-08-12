@@ -23,11 +23,13 @@ export function TelemetryPill() {
   const { city, lat, lon } = useTelemetryTicker()
 
   return (
-    <div className="inline-flex items-center gap-2 rounded-full bg-black/60 px-3 py-2 font-mono text-[11px] tracking-wider text-white/90 backdrop-blur">
-      <span className="text-blue-400">
+    <div className="inline-flex items-center gap-2 rounded-full bg-black/60 px-2.5 py-2 font-mono text-[10px] tracking-wider text-white/90 backdrop-blur sm:px-3 sm:text-[11px]">
+      <span className="shrink-0 text-blue-400">
         <PinIcon />
       </span>
-      <span className="tabular-nums">
+      {/* One line at every width — a readout that reflows mid-number reads as
+          broken rather than live. */}
+      <span className="tabular-nums whitespace-nowrap">
         {city} • {lat.toFixed(3)}° N&nbsp;&nbsp;{lon.toFixed(3)}° E
       </span>
     </div>

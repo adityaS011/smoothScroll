@@ -1,12 +1,13 @@
 'use client'
 
+import Image from 'next/image'
 import { useLocalStorageDismiss } from '@/hooks/useLocalStorageDismiss'
 
 function ChatBubble() {
   return (
     <button
       aria-label="Support chat"
-      className="grid h-12 w-12 place-items-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-500"
+      className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-blue-600 text-white shadow-lg transition-colors hover:bg-blue-500"
     >
       <svg
         width="22"
@@ -35,14 +36,20 @@ export function BookATourPill() {
           so a dismissed pill never flashes on-screen after a refresh. */}
       {dismissed === false && (
         <div className="flex items-center gap-2 rounded-full bg-black/60 py-1.5 pr-2 pl-1.5 text-white backdrop-blur">
-          <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-orange-600 text-xs font-bold">
-            UH
-          </span>
-          <span className="text-xs font-semibold tracking-wide">BOOK A TOUR</span>
+          {/* Intrinsically 56px, drawn at 32 — sharp on a 2x screen. Decorative:
+              the label beside it already names the thing. */}
+          <Image
+            src="/book-tour.jpg"
+            alt=""
+            width={56}
+            height={56}
+            className="h-8 w-8 shrink-0 rounded-full object-cover"
+          />
+          <span className="text-xs font-semibold tracking-wide whitespace-nowrap">BOOK A TOUR</span>
           <button
             aria-label="Dismiss book a tour"
             onClick={dismiss}
-            className="grid h-6 w-6 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
+            className="grid h-6 w-6 shrink-0 place-items-center rounded-full text-white/70 hover:bg-white/10 hover:text-white"
           >
             <svg
               width="14"

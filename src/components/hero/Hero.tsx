@@ -47,9 +47,25 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="relative z-10 flex items-end justify-between gap-3 px-4 pb-4">
-        <TelemetryPill />
-        <BookATourPill />
+      {/* Wide: three columns, so the readout centres on the viewport rather
+          than on whatever space the pill leaves. Narrow: one column, and the
+          two stack instead of squeezing into each other.
+
+          The switch waits for lg because centring needs room for the pill
+          column twice over — once for real, once as the balancing spacer.
+          Below that the sum overflows and the middle drifts off centre. */}
+      <div className="relative z-10 grid gap-3 px-4 pb-4 lg:grid-cols-[1fr_auto_1fr] lg:items-end">
+        {/* Balances the Book a Tour column so the middle one is centred. */}
+        <div className="hidden lg:block" aria-hidden="true" />
+
+        {/* Last on a phone, so the readout still sits at the very bottom. */}
+        <div className="order-last justify-self-center lg:order-0">
+          <TelemetryPill />
+        </div>
+
+        <div className="justify-self-end">
+          <BookATourPill />
+        </div>
       </div>
     </section>
   )
