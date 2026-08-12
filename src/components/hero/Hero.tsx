@@ -1,16 +1,16 @@
-import Image from "next/image";
-import { PillButton } from "@/components/shared/PillButton";
-import { AnnouncementBar } from "./AnnouncementBar";
-import { NavBar } from "./NavBar";
-import { TelemetryPill } from "./TelemetryPill";
-import { BookATourPill } from "./BookATourPill";
+import Image from 'next/image'
+import { PillButton } from '@/components/shared/PillButton'
+import { AnnouncementBar } from './AnnouncementBar'
+import { NavBar } from './NavBar'
+import { TelemetryPill } from './TelemetryPill'
+import { BookATourPill } from './BookATourPill'
 
 function PlayIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M8 5v14l11-7z" />
     </svg>
-  );
+  )
 }
 
 export function Hero() {
@@ -52,5 +52,5 @@ export function Hero() {
         <BookATourPill />
       </div>
     </section>
-  );
+  )
 }

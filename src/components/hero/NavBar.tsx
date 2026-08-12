@@ -1,19 +1,19 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { PillButton } from "@/components/shared/PillButton";
+import { useState } from 'react'
+import { PillButton } from '@/components/shared/PillButton'
 
 const NAV_LINKS = [
-  { label: "Ring AIR" },
-  { label: "Ring PRO" },
-  { label: "Blood Vision" },
-  { label: "Performance Lab", badge: "NEW" },
-  { label: "Home Health" },
-  { label: "M1 CGM" },
-  { label: "Ovulation Tracking" },
-  { label: "UltrahumanX" },
-  { label: "Shop" },
-];
+  { label: 'Ring AIR' },
+  { label: 'Ring PRO' },
+  { label: 'Blood Vision' },
+  { label: 'Performance Lab', badge: 'NEW' },
+  { label: 'Home Health' },
+  { label: 'M1 CGM' },
+  { label: 'Ovulation Tracking' },
+  { label: 'UltrahumanX' },
+  { label: 'Shop' },
+]
 
 function Logo() {
   return (
@@ -23,22 +23,37 @@ function Logo() {
       </span>
       <span className="text-sm font-semibold tracking-widest uppercase">Ultrahuman</span>
     </a>
-  );
+  )
 }
 
 function CartIcon() {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
-      <path d="M3 3h2l.4 2M7 13h10l3-8H6.4M7 13 5.4 5M7 13l-2 4h12" strokeLinecap="round" strokeLinejoin="round" />
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      aria-hidden="true"
+    >
+      <path
+        d="M3 3h2l.4 2M7 13h10l3-8H6.4M7 13 5.4 5M7 13l-2 4h12"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
       <circle cx="9" cy="20" r="1.5" />
       <circle cx="17" cy="20" r="1.5" />
     </svg>
-  );
+  )
 }
 
 function NavLinkItem({ label, badge }: { label: string; badge?: string }) {
   return (
-    <a href="#" className="flex items-center gap-1.5 whitespace-nowrap text-white/85 hover:text-white">
+    <a
+      href="#"
+      className="flex items-center gap-1.5 whitespace-nowrap text-white/85 hover:text-white"
+    >
       {label}
       {badge && (
         <span className="rounded-full bg-blue-600 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-white">
@@ -46,11 +61,11 @@ function NavLinkItem({ label, badge }: { label: string; badge?: string }) {
         </span>
       )}
     </a>
-  );
+  )
 }
 
 export function NavBar() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(false)
 
   return (
     <nav className="w-full">
@@ -71,17 +86,33 @@ export function NavBar() {
             <PillButton>EXPLORE PLANS</PillButton>
           </div>
           <button
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             className="xl:hidden"
             onClick={() => setOpen((prev) => !prev)}
           >
             {open ? (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
                 <path d="M6 6l12 12M18 6 6 18" strokeLinecap="round" />
               </svg>
             ) : (
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+              >
                 <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
               </svg>
             )}
@@ -102,5 +133,5 @@ export function NavBar() {
         </div>
       )}
     </nav>
-  );
+  )
 }

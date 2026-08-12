@@ -8,5 +8,5 @@ export function AnnouncementBar() {
         </a>
       </p>
     </div>
-  );
+  )
 }
