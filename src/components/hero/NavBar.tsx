@@ -17,7 +17,11 @@ const NAV_LINKS = [
 
 function Logo() {
   return (
-    <a href="#" className="flex items-center gap-2 text-white" aria-label="Ultrahuman home">
+    <a
+      href="#"
+      className="flex shrink-0 items-center gap-2 text-white"
+      aria-label="Ultrahuman home"
+    >
       <span className="grid h-8 w-8 place-items-center rounded-full ring-1 ring-white/50">
         <span className="h-3 w-3 rounded-full bg-white" />
       </span>
@@ -72,13 +76,15 @@ export function NavBar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4">
         <Logo />
 
-        <div className="hidden items-center gap-5 text-sm xl:flex">
+        {/* Nine links plus a logo and a CTA only just fit at xl; the wider gap
+            waits until there is room for it. */}
+        <div className="hidden items-center gap-4 text-sm xl:flex 2xl:gap-5">
           {NAV_LINKS.map((link) => (
             <NavLinkItem key={link.label} {...link} />
           ))}
         </div>
 
-        <div className="flex items-center gap-3 text-white">
+        <div className="flex shrink-0 items-center gap-3 text-white">
           <button aria-label="Cart" className="hover:text-white/70">
             <CartIcon />
           </button>
