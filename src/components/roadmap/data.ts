@@ -91,14 +91,17 @@ export const panels: Panel[] = [
     ],
   },
 
-  // 6 — orange
+  // 6 — orange, two phrases on a diagonal
   {
     id: 6,
     image: '/orange3.jpg',
     focal: 'center 25%',
+    // Separated in y, like panels 3 and 5. Side by side they fit on a laptop
+    // and collide on a phone, where the long phrase needs most of the width
+    // to itself; stacking is the only placement that holds at every size.
     words: [
-      { id: 'o-compounds', text: 'WHERE EVERY SESSION COMPOUNDS', x: 43, y: 48 },
-      { id: 'o-onthelast', text: 'ON\nTHE LAST', x: 80, y: 48 },
+      { id: 'o-compounds', text: 'WHERE EVERY SESSION COMPOUNDS', x: 46, y: 36 },
+      { id: 'o-onthelast', text: 'ON\nTHE LAST', x: 72, y: 64 },
     ],
   },
 ]

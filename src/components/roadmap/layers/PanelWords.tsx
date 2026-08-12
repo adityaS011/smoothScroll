@@ -6,6 +6,16 @@ export type RegisterWord = (id: string, el: HTMLElement | null) => void
 
 export type OpacityOf = (yPercent: number, wordId: string) => number
 
+/** Kept clear at both panel edges, so no word ever sits flush against one. */
+const GUTTER = '2rem'
+
+/**
+ * A box anchored at `x` but centred on it may use the nearer side twice, so it
+ * can spread 2·min(x, 100−x) before running off that edge. Past this it wraps
+ * rather than being clipped.
+ */
+const spreadFrom = (x: number) => `calc(${2 * Math.min(x, 100 - x)}% - ${GUTTER})`
+
 function Word({
   id,
   text,
@@ -59,11 +69,10 @@ export function PanelWords({
             top: `${w.y}%`,
             transform: 'translate(-50%, -50%)',
             opacity: opacityOf(w.y, w.id),
-            // max-content, or shrink-to-fit wraps early: the box is anchored
-            // at x but centered on it, so it may use the nearer side twice.
+            // max-content, or shrink-to-fit wraps early.
             whiteSpace: 'pre-line',
             width: 'max-content',
-            maxWidth: `${2 * Math.min(w.x, 100 - w.x)}%`,
+            maxWidth: spreadFrom(w.x),
           }}
         />
       ))}
@@ -77,9 +86,7 @@ export function PanelWords({
             top: `${row.y}%`,
             transform: 'translate(-50%, -50%)',
             gap: row.gapScale ? `calc(${WORD_GAP} * ${row.gapScale})` : WORD_GAP,
-            // A row centered at x may spread 2·min(x, 100−x) before running
-            // off one side; past that it wraps rather than being clipped.
-            maxWidth: `${2 * Math.min(row.x, 100 - row.x)}%`,
+            maxWidth: spreadFrom(row.x),
           }}
         >
           {row.words.map((w) => (
