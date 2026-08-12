@@ -16,4 +16,14 @@ export const WORD_TEXT_STYLE: CSSProperties = {
   textAlign: 'center',
 }
 
-export const WORD_GAP = 'clamp(0.75rem, 3.4vw, 3.25rem)'
+/**
+ * The space a connector is drawn across, so it sets the line's length: the
+ * line is this gap less the small clearance kept at each word's edge.
+ *
+ * The floor matters more than the ideal. At 3.4vw alone a phone left roughly
+ * 40px between two words, and by the time both ends had their clearance the
+ * line was a 20px stub. Starting at 1.75rem keeps it legible on a small
+ * screen — vertically too, since this is also the gap a wrapped row stacks
+ * across.
+ */
+export const WORD_GAP = 'clamp(1.75rem, 3.4vw, 3.25rem)'
